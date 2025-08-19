@@ -44,9 +44,11 @@ private fun paginationHeaders(result: SearchResult<*>, request: HttpRequest): Ma
     ).toMap()
 }
 
-suspend fun <T> HttpRequest.respondObject(now: Instant, fn: suspend () -> T?) = defaultHeadersOrErrorHandling {
+suspend fun <T> HttpRequest.respondObject(now: Instant, fn: suspend () -> T?) =
+    respondOptionalObject(now) { fn() ?: throw OcpiObjectNotFoundException() }
+
+suspend fun <T> HttpRequest.respondOptionalObject(now: Instant, fn: suspend () -> T?) = defaultHeadersOrErrorHandling {
     val result = fn()
-        ?: throw OcpiObjectNotFoundException()
 
     // TODO we are supposed to respond with a 201 CREATED if this is a newly added object
     //      https://github.com/ocpi/ocpi/blob/v2.2.1-d2/status_codes.asciidoc
